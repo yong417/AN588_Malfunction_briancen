@@ -93,7 +93,7 @@ z.prop.test <- function(p1, n1, p2 = NULL, n2 = NULL, p0,
 
 [2] Fit a simple linear regression model to predict longevity (MaxLongevity_m) measured in months from species’ brain size (Brain_Size_Species_Mean) measured in grams.
 ```{r}
-library(curl) # load the curl library
+library(curl)
 library(ggplot2)
 
 # inspect the kamilar and cooper data
@@ -105,8 +105,6 @@ d <- subset(a, !is.na(Brain_Size_Species_Mean) & !is.na(MaxLongevity_m))
 
 #creating the normal model using lm
 model1 <- lm(MaxLongevity_m ~ Brain_Size_Species_Mean, data = d)
-
- 
 
 # extracting the coefficient for the normal regression line
 coef_model1 <- coef(model1)
@@ -268,6 +266,4 @@ prediction_800_log <- predict(model2, newdata = prediction_point_log, interval =
 prediction_800_log
 
 #response: while even in the log transformed model we are still doing extrapolation, I am more confident than the normal model since the 90% confidence range is much smaller. I think the log transformed model is a more suitable model for explaining the relationship between brain size and longevity.
-
-
 ```

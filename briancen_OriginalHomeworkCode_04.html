@@ -482,7 +482,7 @@ p1</code></pre>
 <pre><code>##                                5 %      95 %
 ## (Intercept)             230.540738 267.36379
 ## Brain_Size_Species_Mean   1.035571   1.40041</code></pre>
-<pre class="r"><code>###response: from the summary we can see that the slope estimate is 1.218 and it means that for every addtional grams in brain size, the model predicts that the maximum longevitiy increase by about 1.218 monts on average.since the p value for the point estimate of the slope is  &lt; 2e-16 which is extremely small, we reject the null hypothesis and there is strong evidence that brain size is a statically significant predictor of longevity; the 90% confidence interval for Brain_Size_Species_Mean is approximately (1.0356, 1.4004) meaning that we are 90% confident that the true increase of longevitiy is between 1.036 abd 1.400 months with one additional grams.
+<pre class="r"><code>###response: from the summary we can see that the slope estimate is 1.218 and it means that for every additional grams in brain size, the model predicts that the maximum longevitiy increase by about 1.218 months on average.since the p value for the point estimate of the slope is  &lt; 2e-16 which is extremely small, we reject the null hypothesis and there is strong evidence that brain size is a statically significant predictor of longevity; the 90% confidence interval for Brain_Size_Species_Mean is approximately (1.0356, 1.4004) meaning that we are 90% confident that the true increase of longevity is between 1.036 abd 1.400 months with one additional grams.
 
 # Create a new data frame spanning the range of Brain_Size_Species_Mean
 new_data &lt;- data.frame(Brain_Size_Species_Mean = seq(min(d$Brain_Size_Species_Mean, na.rm = TRUE), 
@@ -503,8 +503,8 @@ new_data$upr_pred &lt;- pred_pred[, &quot;upr&quot;]
 
 # Create the plot with original points, the fitted line, and the interval bands
 p2 &lt;- ggplot(d, aes(x = Brain_Size_Species_Mean, y = MaxLongevity_m)) +
-  geom_point() +  # Original data points
-  # Fitted regression line from our model
+  geom_point() +  
+  # Fitted regression line from the model
   geom_line(data = new_data, aes(x = Brain_Size_Species_Mean, y = fit, color = &quot;Fitted&quot;), size = 1) +
   # 90% Confidence interval lines (upper and lower)
   geom_line(data = new_data, aes(x = Brain_Size_Species_Mean, y = lwr_conf, color = &quot;90% Confidence&quot;), 
@@ -551,7 +551,7 @@ eq_label_log &lt;- paste0(&quot;log(y) = &quot;, intercept_log, &quot; + &quot;,
 
 # Create the scatterplot with the log-transformed data and fitted regression line
 p1_log &lt;- ggplot(d, aes(x = log(Brain_Size_Species_Mean), y = log(MaxLongevity_m))) +
-  geom_point() +  # Plot the log-transformed data points
+  geom_point() +  # 
   geom_smooth(method = &quot;lm&quot;, se = FALSE, color = &quot;blue&quot;) +  # Fitted regression line
   geom_text(x = max(log(d$Brain_Size_Species_Mean), na.rm = TRUE)*0.5, 
             y = max(log(d$MaxLongevity_m), na.rm = TRUE)*0.5, 
@@ -568,7 +568,7 @@ confint(model2, level = 0.90)</code></pre>
 <pre><code>##                                    5 %      95 %
 ## (Intercept)                  4.7644934 4.9934084
 ## log(Brain_Size_Species_Mean) 0.2046396 0.2636595</code></pre>
-<pre class="r"><code>###response: from the summary we can see that the slope estimate is 0.234 and it means that a 1% increase in brain size is associated with an approximate 0.23415% increase in maximum longevity. the p value is really small and we reject the null hypothesis and there is sufficient evidence to suggest that brain size is a statistically significant predictor of longevity in this model. The confidence interval is between 0.2 and 0.26 meaning that we are 90 percent confident that the true increase in maximum longevitiy for each addtional gram is between 0.2% and 0.26%.
+<pre class="r"><code>###response: from the summary we can see that the slope estimate is 0.234 and it means that a 1% increase in brain size is associated with an approximate 0.23415% increase in maximum longevity. the p value is really small and we reject the null hypothesis and there is sufficient evidence to suggest that brain size is a statistically significant predictor of longevity in this model. The confidence interval is between 0.2 and 0.26 meaning that we are 90 percent confident that the true increase in maximum longevity for each additional gram is between 0.2% and 0.26%.
 
 
 # Create a new data frame spanning the range of Brain_Size_Species_Mean
@@ -576,9 +576,9 @@ new_data_log &lt;- data.frame(Brain_Size_Species_Mean = seq(min(d$Brain_Size_Spe
                                                          max(d$Brain_Size_Species_Mean, na.rm = TRUE), 
                                                          length.out = 100))
 
-# Get predictions (in log scale) with 90% confidence intervals
+# Get predictions with 90% confidence intervals
 pred_conf_log &lt;- predict(model2, newdata = new_data_log, interval = &quot;confidence&quot;, level = 0.90)
-# Get predictions (in log scale) with 90% prediction intervals
+# Get predictions with 90% prediction intervals
 pred_pred_log &lt;- predict(model2, newdata = new_data_log, interval = &quot;prediction&quot;, level = 0.90)
 
 # Combine predictions with new_data_log
@@ -622,7 +622,7 @@ prediction_800_log &lt;- predict(model2, newdata = prediction_point_log, interva
 prediction_800_log</code></pre>
 <pre><code>##       fit      lwr      upr
 ## 1 6.44415 6.021424 6.866876</code></pre>
-<pre class="r"><code>#response: while even in the log transformed model we are still doing extrapolation, I am more confident that the normal model since the 90% confidence range is much smaller. I think the log transformed model is a more sutiable model for explaning the relationship between brain size and longevitiy.</code></pre>
+<pre class="r"><code>#response: while even in the log transformed model we are still doing extrapolation, I am more confident that the normal model since the 90% confidence range is much smaller. I think the log transformed model is a more suitable model for explaining the relationship between brain size and longevitiy.</code></pre>
 
 
 

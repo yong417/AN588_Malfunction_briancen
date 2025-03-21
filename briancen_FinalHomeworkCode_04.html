@@ -442,7 +442,7 @@ display: none;
 <p>[2] Fit a simple linear regression model to predict longevity
 (MaxLongevity_m) measured in months from species’ brain size
 (Brain_Size_Species_Mean) measured in grams.</p>
-<pre class="r"><code>library(curl) # load the curl library</code></pre>
+<pre class="r"><code>library(curl)</code></pre>
 <pre><code>## Using libcurl 8.11.1 with OpenSSL/3.3.2</code></pre>
 <pre class="r"><code>library(ggplot2)
 
@@ -455,8 +455,6 @@ d &lt;- subset(a, !is.na(Brain_Size_Species_Mean) &amp; !is.na(MaxLongevity_m))
 
 #creating the normal model using lm
 model1 &lt;- lm(MaxLongevity_m ~ Brain_Size_Species_Mean, data = d)
-
- 
 
 # extracting the coefficient for the normal regression line
 coef_model1 &lt;- coef(model1)
