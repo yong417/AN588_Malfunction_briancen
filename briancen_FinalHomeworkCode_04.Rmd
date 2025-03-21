@@ -1,0 +1,273 @@
+---
+title: "briancen_FinalHomeworkCode_04"
+author: "Yongliang Cen"
+date: "2025-03-18"
+output: html_document
+---
+
+[1] write a simple z.prop.test()
+```{r}
+z.prop.test <- function(p1, n1, p2 = NULL, n2 = NULL, p0, 
+                          alternative = "two.sided", c.level = 0.95) {
+
+  # p1 stands for proportion of sample 1
+  # n1 stands for sample 1 size
+  # p2 is set to null if not specified and it will perform one sample z test, if specify it stands for proportion for sample 2
+  # n2 is same logic as above and if specified it stands for  sample 2 size
+  # p0 stands for true population proportion in one sample test
+  # alternative is set to two sided and the alternative hypothesis would be p1 is different from p0, if set to less than it would be testing if p1 < p0, if set to greater than if would be testing p1 > p0
+  # CI stands for confidence interval, which by default is set to 95%
+  
+  if (is.null(p2) || is.null(n2)) {
+    # if there is no input for p2 and n2 we will proceed with a one sample z test
+    if (n1 * p0 <= 5 || n1 * (1 - p0) <= 5) {
+      warning("Warning: Assumption for Normal Distribution Might Not be Valid.")
+    }
+      # this is to ensure the validity of assuming normal distribution
+    
+    se_null <- sqrt(p0 * (1 - p0) / n1) # calculate standard error for proportion under null hypothesis
+    
+    Z <- (p1 - p0) / se_null # calculate the Z statistic which is useful later for calculating p value
+    
+       # Calculate p value based on input into "alternative"
+    if (alternative == "two.sided") {
+      # For a two-sided test
+      p_value <- 2 * pnorm(-abs(Z))
+    } else if (alternative == "less") {
+      # For a 'less than' test: H1: p1 < p0, we use the lower tail.
+      p_value <- pnorm(Z)
+    } else if (alternative == "greater") {
+      # For a 'greater than' test: H1: p1 > p0,  we use the upper tail.
+      p_value <- pnorm(Z, lower.tail = FALSE)
+    } 
+    
+    # calculate sample standard error for making the CI, note here we are using 1-p1, for the se_null we were using 1-p0
+    se <- sqrt(p1 * (1 - p1) / n1)
+    
+    # find the Z(alpha/2)
+    z_alpha <- qnorm(1 - (1 - c.level) / 2)
+    
+    # Make the upper and lower bound confidence interval for p1
+    CI <- c(p1 - z_alpha * se, p1 + z_alpha * se)
+    
+    # Return the results as a list.
+    return(list(Z = Z, P = p_value, CI = CI))
+    
+  } else {
+    # the following is for processing the two sample test; if p2 and n2 is specify, we are testing for the difference between two proportion, the null hypothesis here is H0: p1 - p2 = 0
+    
+    # Check the validity of normal distribution assumption for both sample
+    if (n1 * p1 <= 5 || n1 * (1 - p1) <= 5) {
+      warning("Warning: Assumption for Normal Distribution Might Not be Valid.")
+    }
+    if (n2 * p2 <= 5 || n2 * (1 - p2) <= 5) {
+      warning("Warning: Assumption for Normal Distribution Might Not be Valid.")
+    }
+    
+    # Calculate the standard error for the difference in proportions.
+    se_diff <- sqrt((p1 * (1 - p1) / n1) + (p2 * (1 - p2) / n2))
+    
+    # Compute the Z statistic. notice the formula is different for two sample test 
+    Z <- (p1 - p2) / se_diff
+    
+    # Calculate p value based on input into "alternative"
+    if (alternative == "two.sided") {
+      p_value <- 2 * pnorm(-abs(Z))
+    } else if (alternative == "less") {
+      # For 'less', we test if p1 is significantly less than p2.
+      p_value <- pnorm(Z)
+    } else if (alternative == "greater") {
+      # For 'greater', we test if p1 is significantly greater than p2.
+      p_value <- 1 - pnorm(Z)
+    }
+    
+    # creating CI for the difference in proportions
+    z_alpha <- qnorm(1 - (1 - c.level) / 2)
+    CI <- c((p1 - p2) - z_alpha * se_diff, (p1 - p2) + z_alpha * se_diff)
+    
+    return(list(Z = Z, P = p_value, CI = CI))
+  }
+}
+
+```
+
+[2] Fit a simple linear regression model to predict longevity (MaxLongevity_m) measured in months from species’ brain size (Brain_Size_Species_Mean) measured in grams.
+```{r}
+library(curl) # load the curl library
+library(ggplot2)
+
+# inspect the kamilar and cooper data
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/AN588_Fall23/KamilarAndCooperData.csv")
+a <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+
+# there are a lot of NAs to be removed
+d <- subset(a, !is.na(Brain_Size_Species_Mean) & !is.na(MaxLongevity_m))
+
+#creating the normal model using lm
+model1 <- lm(MaxLongevity_m ~ Brain_Size_Species_Mean, data = d)
+
+ 
+
+# extracting the coefficient for the normal regression line
+coef_model1 <- coef(model1)
+intercept <- round(coef_model1[1], 2) # this takes the intercept value from th  coefficients we just extracted
+slope <- round(coef_model1[2], 2) # this takes the value at the second position which is the slope
+eq_label <- paste0("y = ", intercept, " + ", slope, " * x")
+
+#next we can create the scatter plot with the normal regression line
+p1 <- ggplot(d, aes(x = Brain_Size_Species_Mean, y = MaxLongevity_m)) +
+  geom_point() +  # Plot the data points
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +  #  
+  geom_text(x = max(d$Brain_Size_Species_Mean)*0.5, 
+            y = max(d$MaxLongevity_m)*0.5, 
+            label = eq_label, 
+            color = "red", size = 5, hjust = 0) +
+  labs(x = "Brain Size (g)", y = "Max Longevity (months)",
+       title = "Longevity vs. Brain Size with Fitted Regression Line")
+
+p1
+
+confint(model1, level = 0.90)
+
+###response: From the summary we can see that the slope estimate is 1.218 and it means that for every additional grams in brain size, the model predicts that the maximum longevity increase by about 1.218 months on average.Since the p value for the point estimate of the slope is  < 2e-16 which is extremely small, we reject the null hypothesis and there is strong evidence that brain size is a statically significant predictor of longevity; the 90% confidence interval for Brain_Size_Species_Mean is approximately (1.0356, 1.4004) meaning that we are 90% confident that the true increase of longevity is between 1.036 and 1.400 months with one additional grams.
+
+# Create a new data frame spanning the range of Brain_Size_Species_Mean
+new_data <- data.frame(Brain_Size_Species_Mean = seq(min(d$Brain_Size_Species_Mean, na.rm = TRUE), 
+                                                     max(d$Brain_Size_Species_Mean, na.rm = TRUE), 
+                                                     length.out = 100))
+
+# Get predictions with 90% confidence intervals
+pred_conf <- predict(model1, newdata = new_data, interval = "confidence", level = 0.90)
+# Get predictions with 90% prediction intervals
+pred_pred <- predict(model1, newdata = new_data, interval = "prediction", level = 0.90)
+
+# Combine predictions with new_data
+new_data$fit      <- pred_conf[, "fit"]
+new_data$lwr_conf <- pred_conf[, "lwr"]
+new_data$upr_conf <- pred_conf[, "upr"]
+new_data$lwr_pred <- pred_pred[, "lwr"]
+new_data$upr_pred <- pred_pred[, "upr"]
+
+# Create the plot with original points, the fitted line, and the interval bands
+p2 <- ggplot(d, aes(x = Brain_Size_Species_Mean, y = MaxLongevity_m)) +
+  geom_point() +  
+  # Fitted regression line from the model
+  geom_line(data = new_data, aes(x = Brain_Size_Species_Mean, y = fit, color = "Fitted"), size = 1) +
+  # 90% Confidence interval lines (upper and lower)
+  geom_line(data = new_data, aes(x = Brain_Size_Species_Mean, y = lwr_conf, color = "90% Confidence"), 
+            linetype = "dashed", size = 1) +
+  geom_line(data = new_data, aes(x = Brain_Size_Species_Mean, y = upr_conf, color = "90% Confidence"), 
+            linetype = "dashed", size = 1) +
+  # 90% Prediction interval lines (upper and lower)
+  geom_line(data = new_data, aes(x = Brain_Size_Species_Mean, y = lwr_pred, color = "90% Prediction"), 
+            linetype = "dotted", size = 1) +
+  geom_line(data = new_data, aes(x = Brain_Size_Species_Mean, y = upr_pred, color = "90% Prediction"), 
+            linetype = "dotted", size = 1) +
+  labs(x = "Brain Size (g)", 
+       y = "Max Longevity (months)",
+       title = "Longevity vs. Brain Size with Fitted Regression,\n90% Confidence and Prediction Intervals",
+       color = "Legend") +
+  scale_color_manual(values = c("Fitted" = "blue", 
+                                "90% Confidence" = "pink", 
+                                "90% Prediction" = "purple")) +
+  theme_minimal()
+
+
+p2
+
+
+
+# Create a new data frame for a brain weight of 800 gm
+prediction_point <- data.frame(Brain_Size_Species_Mean = 800)
+
+# Generate the prediction with a 90% prediction interval
+prediction_800 <- predict(model1, newdata = prediction_point, interval = "prediction", level = 0.90)
+prediction_800
+
+#response: The point estimate for the maximum longevity is about 1223.345 months and there is a 90 confidence that the actual max longevity is between 1021 and 1424. I don't really trust the model prediction since in our model, the max brain size was around 500 gram and 800 grams is way outside of the observed range and extrapolation beyond the data can be unreliable.
+
+
+```
+```{r}
+# Fit the log-transformed model
+model2 <- lm(log(MaxLongevity_m) ~ log(Brain_Size_Species_Mean), data = d)
+
+# Extract coefficients and create the regression equation label
+coef_model2 <- coef(model2)
+intercept_log <- round(coef_model2[1], 2)  # intercept on the log scale
+slope_log <- round(coef_model2[2], 2)      # slope on the log scale
+eq_label_log <- paste0("log(y) = ", intercept_log, " + ", slope_log, " * log(x)")
+
+# Create the scatter plot with the log-transformed data and fitted regression line
+p1_log <- ggplot(d, aes(x = log(Brain_Size_Species_Mean), y = log(MaxLongevity_m))) +
+  geom_point() +  # 
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +  # Fitted regression line
+  geom_text(x = max(log(d$Brain_Size_Species_Mean), na.rm = TRUE)*0.5, 
+            y = max(log(d$MaxLongevity_m), na.rm = TRUE)*0.8, 
+            label = eq_label_log, 
+            color = "red", size = 5, hjust = 0) +
+  labs(x = "log(Brain Size (g))", y = "log(Max Longevity (months))",
+       title = "Log-Log: Longevity vs. Brain Size with Fitted Regression Line")
+
+p1_log
+
+# Display the 90% confidence interval for the slope parameter
+confint(model2, level = 0.90)
+
+###response: from the summary we can see that the slope estimate is 0.234 and it means that a 1% increase in brain size is associated with an approximate 0.23415% increase in maximum longevity. The p value is really small and we reject the null hypothesis and there is sufficient evidence to suggest that brain size is a statistically significant predictor of longevity in this model. The confidence interval is between 0.2 and 0.26 meaning that we are 90 percent confident that the true increase in maximum longevity for each additional gram is between 0.2% and 0.26%.
+
+
+# Create a new data frame spanning the range of Brain_Size_Species_Mean
+new_data_log <- data.frame(Brain_Size_Species_Mean = seq(min(d$Brain_Size_Species_Mean, na.rm = TRUE), 
+                                                         max(d$Brain_Size_Species_Mean, na.rm = TRUE), 
+                                                         length.out = 100))
+
+# Get predictions with 90% confidence intervals
+pred_conf_log <- predict(model2, newdata = new_data_log, interval = "confidence", level = 0.90)
+# Get predictions with 90% prediction intervals
+pred_pred_log <- predict(model2, newdata = new_data_log, interval = "prediction", level = 0.90)
+
+# Combine predictions with new_data_log
+new_data_log$fit      <- pred_conf_log[, "fit"]
+new_data_log$lwr_conf <- pred_conf_log[, "lwr"]
+new_data_log$upr_conf <- pred_conf_log[, "upr"]
+new_data_log$lwr_pred <- pred_pred_log[, "lwr"]
+new_data_log$upr_pred <- pred_pred_log[, "upr"]
+
+# Create the plot with the interval bands on the log-log scale
+p2_log <- ggplot(d, aes(x = log(Brain_Size_Species_Mean), y = log(MaxLongevity_m))) +
+  geom_point() +  # Original data points (log-transformed)
+  # Fitted regression line (from the predictions)
+  geom_line(data = new_data_log, aes(x = log(Brain_Size_Species_Mean), y = fit, color = "Fitted"), size = 1) +
+  # 90% Confidence interval lines (upper and lower bounds)
+  geom_line(data = new_data_log, aes(x = log(Brain_Size_Species_Mean), y = lwr_conf, color = "90% Confidence"), 
+            linetype = "dashed", size = 1) +
+  geom_line(data = new_data_log, aes(x = log(Brain_Size_Species_Mean), y = upr_conf, color = "90% Confidence"), 
+            linetype = "dashed", size = 1) +
+  # 90% Prediction interval lines (upper and lower bounds)
+  geom_line(data = new_data_log, aes(x = log(Brain_Size_Species_Mean), y = lwr_pred, color = "90% Prediction"), 
+            linetype = "dotted", size = 1) +
+  geom_line(data = new_data_log, aes(x = log(Brain_Size_Species_Mean), y = upr_pred, color = "90% Prediction"), 
+            linetype = "dotted", size = 1) +
+  labs(x = "log(Brain Size (g))", 
+       y = "log(Max Longevity (months))",
+       title = "Log: Longevity vs. Brain Size with Fitted Regression,\n90% Confidence and Prediction Intervals",
+       color = "Legend") +
+  scale_color_manual(values = c("Fitted" = "blue", 
+                                "90% Confidence" = "pink", 
+                                "90% Prediction" = "purple")) +
+  theme_minimal()
+
+p2_log
+
+# Create a new data frame for a brain weight of 800 gm
+prediction_point_log <- data.frame(Brain_Size_Species_Mean = 800)
+
+# Generate the prediction with a 90% prediction interval (results are on the log scale)
+prediction_800_log <- predict(model2, newdata = prediction_point_log, interval = "prediction", level = 0.90)
+prediction_800_log
+
+#response: while even in the log transformed model we are still doing extrapolation, I am more confident than the normal model since the 90% confidence range is much smaller. I think the log transformed model is a more suitable model for explaining the relationship between brain size and longevity.
+
+
+```
