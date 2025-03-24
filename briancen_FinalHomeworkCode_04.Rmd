@@ -265,5 +265,5 @@ prediction_point_log <- data.frame(Brain_Size_Species_Mean = 800)
 prediction_800_log <- predict(model2, newdata = prediction_point_log, interval = "prediction", level = 0.90)
 prediction_800_log
 
-#response: while even in the log transformed model we are still doing extrapolation, I am more confident than the normal model since the 90% confidence range is much smaller. I think the log transformed model is a more suitable model for explaining the relationship between brain size and longevity.
+#response: while even in the log transformed model we are still doing extrapolation, I am more confident than the normal model since the 90% confidence range is much smaller. I think the log transformed model is a more suitable model for explaining the relationship between brain size and longevity. In addition, the data point are much more spread out after log transform. By applying the log transformation, we compress large values and expand smaller ones, which results in a more symmetric distribution and stabilizes the variance.
 ```

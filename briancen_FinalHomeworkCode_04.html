@@ -620,7 +620,7 @@ prediction_800_log &lt;- predict(model2, newdata = prediction_point_log, interva
 prediction_800_log</code></pre>
 <pre><code>##       fit      lwr      upr
 ## 1 6.44415 6.021424 6.866876</code></pre>
-<pre class="r"><code>#response: while even in the log transformed model we are still doing extrapolation, I am more confident than the normal model since the 90% confidence range is much smaller. I think the log transformed model is a more suitable model for explaining the relationship between brain size and longevity.</code></pre>
+<pre class="r"><code>#response: while even in the log transformed model we are still doing extrapolation, I am more confident than the normal model since the 90% confidence range is much smaller. I think the log transformed model is a more suitable model for explaining the relationship between brain size and longevity. In addition, the data point are much more spread out after log transform. By applying the log transformation, we compress large values and expand smaller ones, which results in a more symmetric distribution and stabilizes the variance.</code></pre>
 
 
 
